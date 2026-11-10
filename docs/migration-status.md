@@ -21,6 +21,8 @@
 
 - Spot·Futures 서명 HTTP 어댑터: 로컬 서버에서 서명·헤더·query/form과 오류 매핑 검증
 
+- Spot 주문 6개 REST·trade.executed 이벤트, 체결 평균·수수료·잔고 방어 테스트
+
 ## 진행 중
 
 - 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
