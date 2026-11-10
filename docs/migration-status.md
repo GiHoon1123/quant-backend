@@ -17,6 +17,8 @@
 
 - 기본 5개·고급 5개 전략 출력 4개 시나리오 원본 비교 통과
 
+- 분석 집계·지표 요약과 REST 9개 경로, 원본 전체 결과 fixture 4종 비교
+
 ## 진행 중
 
 - 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
@@ -25,7 +27,6 @@
 
 - 거래·포지션·Bitcoin DB repository 연결 (스키마 SQL 자체는 보존)
 - 시장 데이터 startup DB preload·전체 history 수집 API·원본 테스트 입력 경로 및 서버 통계 방송
-- 분석 서비스 집계와 API (전략 계산은 이전 완료)
 - Binance Spot/Futures 주문·포지션·모니터링
 - 자동매매·ATR 설정 API·알림·Bitcoin transaction 처리
 - 원본 테스트 전용 REST 경로
