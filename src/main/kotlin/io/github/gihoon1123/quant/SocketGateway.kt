@@ -60,7 +60,7 @@ class SocketGateway(
                 val requested = symbols(input.firstOrNull())
                 requested.forEach { symbol ->
                     if (symbols.add(symbol)) {
-                        candles.latest(symbol)?.let {
+                        candles.latestRecord(symbol)?.let {
                             send(
                                 socket,
                                 "candle.latest",
@@ -123,6 +123,30 @@ class SocketGateway(
         event: String,
         value: Any,
     ) = socket.send(event, JSONObject(mapper.writeValueAsString(value)))
+
+    fun serverStatistics(): Map<String, Any> {
+        val symbols =
+            clients.values
+                .flatMap { it.second }
+                .groupingBy { it }
+                .eachCount()
+        return mapOf(
+            "totalConnections" to clients.size,
+            "subscriptionStats" to
+                mapOf(
+                    "totalClients" to clients.size,
+                    "totalSubscriptions" to clients.values.sumOf { it.second.size },
+                    "symbolSubscriptions" to symbols,
+                ),
+            "serviceStats" to candles.status(),
+            "timestamp" to clock.instant(),
+        )
+    }
+
+    fun broadcastServerStats() {
+        val stats = serverStatistics()
+        clients.values.forEach { send(it.first, "server.stats", stats) }
+    }
 
     @EventListener
     fun event(event: MarketEvent) {

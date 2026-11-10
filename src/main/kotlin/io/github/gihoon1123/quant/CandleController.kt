@@ -20,13 +20,13 @@ class CandleController(
         @PathVariable symbol: String,
     ): Map<String, Any?> {
         val candle =
-            service.latest(symbol) ?: return mapOf("success" to false, "message" to "${symbol}의 캔들 데이터를 찾을 수 없습니다.", "data" to null)
+            service.latestRecord(symbol) ?: return mapOf("success" to false, "message" to "${symbol}의 캔들 데이터를 찾을 수 없습니다.", "data" to null)
         return success("최신 캔들 데이터 조회 성공", mapOf("symbol" to symbol, "candle" to candle, "retrievedAt" to clock.instant()))
     }
 
     @GetMapping("/latest")
     fun latest(): Map<String, Any?> {
-        val candles = service.allLatest()
+        val candles = service.allLatestRecords()
         return success(
             "모든 심볼의 최신 캔들 데이터 조회 성공",
             mapOf("candles" to candles, "symbolCount" to candles.size, "retrievedAt" to clock.instant()),

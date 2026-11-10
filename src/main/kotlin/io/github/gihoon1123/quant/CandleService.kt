@@ -20,6 +20,7 @@ class CandleService(
     private val clock: Clock,
 ) {
     private val memory = ConcurrentHashMap<String, List<CandleData>>()
+    private val records = ConcurrentHashMap<String, Map<String, Any?>>()
     private val latest = ConcurrentHashMap<String, CandleData>()
     private val ongoing = ConcurrentHashMap<String, CandleData>()
     private val subscriptions = ConcurrentHashMap.newKeySet<String>()
@@ -63,7 +64,8 @@ class CandleService(
         memory[symbol] = next.takeLast(maxMemory)
         latest[symbol] = candle
         connections[symbol] = true
-        if (!completed) ongoing[symbol] = candle
+        ongoing[symbol] = candle
+        runCatching { repository.record(symbol, candle.openTime) }.getOrNull()?.let { records[symbol] = it }
         events.publishEvent(MarketEvent("candle.updated", mapOf("symbol" to symbol, "candleData" to candle, "isCompleted" to completed)))
         if (completed) {
             try {
@@ -119,6 +121,7 @@ class CandleService(
         if (stored.isNotEmpty()) {
             memory[symbol] = stored
             latest[symbol] = stored.last()
+            repository.record(symbol, stored.last().openTime)?.let { records[symbol] = it }
         }
     }
 
@@ -143,23 +146,26 @@ class CandleService(
                 ),
             ),
         )
-        return mapOf(
-            "id" to id,
-            "symbol" to symbol,
-            "market" to "FUTURES",
-            "timeframe" to "15m",
-            "openTime" to java.time.Instant.ofEpochMilli(candle.openTime),
-            "closeTime" to java.time.Instant.ofEpochMilli(candle.closeTime),
-            "open" to candle.open,
-            "high" to candle.high,
-            "low" to candle.low,
-            "close" to candle.close,
-            "volume" to candle.volume,
-            "quoteVolume" to candle.quoteVolume,
-            "trades" to candle.trades,
-            "takerBuyBaseVolume" to candle.takerBuyBaseVolume,
-            "takerBuyQuoteVolume" to candle.takerBuyQuoteVolume,
-        )
+        return (
+            repository.record(symbol, candle.openTime).orEmpty() +
+                mapOf(
+                    "id" to id,
+                    "symbol" to symbol,
+                    "market" to "FUTURES",
+                    "timeframe" to "15m",
+                    "openTime" to java.time.Instant.ofEpochMilli(candle.openTime),
+                    "closeTime" to java.time.Instant.ofEpochMilli(candle.closeTime),
+                    "open" to candle.open,
+                    "high" to candle.high,
+                    "low" to candle.low,
+                    "close" to candle.close,
+                    "volume" to candle.volume,
+                    "quoteVolume" to candle.quoteVolume,
+                    "trades" to candle.trades,
+                    "takerBuyBaseVolume" to candle.takerBuyBaseVolume,
+                    "takerBuyQuoteVolume" to candle.takerBuyQuoteVolume,
+                )
+        ).filterValues { it != null }.mapValues { it.value!! }
     }
 
     fun trigger(symbol: String) {
@@ -179,6 +185,27 @@ class CandleService(
             ),
         )
     }
+
+    fun latestRecord(symbol: String): CandleData? =
+        records[symbol]?.let { row ->
+            fun number(key: String): Double = row.getValue(key).toString().toDouble()
+            CandleData(
+                (row.getValue("openTime") as java.time.Instant).toEpochMilli(),
+                (row.getValue("closeTime") as java.time.Instant).toEpochMilli(),
+                number("open"),
+                number("high"),
+                number("low"),
+                number("close"),
+                number("volume"),
+                number("quoteVolume"),
+                (row.getValue("trades") as Number).toInt(),
+                number("takerBuyBaseVolume"),
+                number("takerBuyQuoteVolume"),
+            )
+        }
+
+    fun allLatestRecords(): Map<String, CandleData> =
+        records.keys.mapNotNull { symbol -> latestRecord(symbol)?.let { symbol to it } }.toMap()
 
     fun latest(symbol: String): CandleData? = latest[symbol]
 
