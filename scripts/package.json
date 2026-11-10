@@ -1,0 +1,13 @@
+{
+  "name": "quant-kotlin-contract-tests",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "integration": "node integration-smoke.cjs"
+  },
+  "devDependencies": {
+    "socket.io-client": "4.8.1",
+    "typescript": "5.9.3",
+    "ws": "8.22.2"
+  }
+}

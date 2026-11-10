@@ -13,7 +13,12 @@ import java.time.Duration
 class Telegram(
     private val environment: Environment,
 ) {
-    private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build()
+    private val client =
+        HttpClient
+            .newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build()
     private val mapper = JsonMapper.builder().build()
 
     fun text(message: String) {

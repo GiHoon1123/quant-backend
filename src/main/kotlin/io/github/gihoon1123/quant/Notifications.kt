@@ -66,7 +66,7 @@ class Notifications(
                             "MEDIUM"
                         },
                     "title" to "$symbol $signal 신호",
-                    "message" to text,
+                    "message" to internalMessage(symbol, analysis),
                     "symbol" to symbol,
                     "data" to mapOf("analysisResult" to analysis, "analyzedAt" to analyzed),
                     "createdAt" to clock.instant(),
@@ -87,6 +87,85 @@ class Notifications(
                 ),
             ),
         )
+    }
+
+    fun internalMessage(
+        symbol: String,
+        analysis: Map<String, Any?>,
+    ): String {
+        val signal = analysis["signal"].toString()
+        val emoji =
+            when (signal) {
+                "BUY", "STRONG_BUY" -> "📈"
+                "SELL", "STRONG_SELL" -> "📉"
+                else -> "📊"
+            }
+        val timestamp = (analysis["timestamp"] as? Number)?.toLong()?.let(Instant::ofEpochMilli) ?: clock.instant()
+        val formatter =
+            java.time.format.DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss")
+        val utc = formatter.withZone(java.time.ZoneOffset.UTC).format(timestamp)
+        val kst = formatter.withZone(java.time.ZoneId.of("Asia/Seoul")).format(timestamp)
+        val timeframe = analysis["timeframe"]?.toString()
+
+        @Suppress("UNCHECKED_CAST")
+        val indicators = analysis["indicators"] as? Map<String, Any?>
+        val lines = mutableListOf<String>()
+
+        fun truthy(value: Any?) = value != null && value != false && value != 0 && value != 0.0 && value != ""
+
+        fun value(value: Any?): String =
+            if (value is Double &&
+                value.isFinite()
+            ) {
+                java.math.BigDecimal
+                    .valueOf(value)
+                    .stripTrailingZeros()
+                    .toPlainString()
+            } else {
+                value.toString()
+            }
+        if (indicators != null) {
+            for ((key, label) in listOf("sma" to "SMA", "rsi" to "RSI", "macd" to "MACD")) {
+                if (truthy(indicators[key])) {
+                    lines +=
+                        "• $label: ${value(indicators[key])}"
+                }
+            }
+            val suffix = if (timeframe != null) " ($timeframe 기준)" else ""
+
+            fun volumes(
+                volume: String,
+                average: String,
+                ratio: String,
+            ) {
+                if (indicators[volume] != null) lines += "• 거래량: ${value(indicators[volume])} BTC$suffix"
+                if (indicators[average] != null) lines += "• 평균 거래량: ${value(indicators[average])} BTC$suffix"
+                if (indicators[ratio] != null) lines += "• 거래량 비율: ${value(indicators[ratio])}배"
+            }
+            volumes("volume", "avgVolume", "volumeRatio")
+            for ((key, label) in listOf(
+                "SMA5" to "SMA5 (단기): $",
+                "SMA10" to "SMA10 (중기): $",
+                "SMA20" to "SMA20 (장기): $",
+                "RSI" to "RSI: ",
+                "MACD" to "MACD: ",
+            )) {
+                if (truthy(indicators[key])) lines += "• $label${value(indicators[key])}"
+            }
+            volumes("Volume", "AvgVolume", "VolumeRatio")
+        }
+        val body = if (indicators == null) "• 분석 중..." else lines.takeIf { it.isNotEmpty() }?.joinToString("\n") ?: "• 데이터 수집 중..."
+        return listOfNotNull(
+            "$emoji **$symbol 기술적 분석 완료**",
+            timeframe?.let {
+                "⏱️ **시간대**: $it"
+            },
+            "🎯 **신호**: $signal",
+            "📈 **주요 지표**:",
+            body,
+            "🕒 **분석 시점**: $utc UTC ($kst KST)",
+        ).joinToString("\n")
     }
 
     @Synchronized

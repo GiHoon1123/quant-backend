@@ -35,4 +35,14 @@ jobs:
       - name: Initialize original PostgreSQL schema
         run: psql -h localhost -U quant -d quant_test -f src/main/resources/db/original-initial-schema.sql
       - name: Lint and test
-        run: ./gradlew build
+        run: ./gradlew build --no-daemon --max-workers=2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: scripts/package-lock.json
+      - name: Install contract test clients
+        run: npm ci --prefix scripts --no-audit --no-fund
+      - name: Local exchange and Socket.IO integration
+        timeout-minutes: 2
+        run: npm run integration --prefix scripts

@@ -4,7 +4,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
 
 data class OpenRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     @field:Pattern(regexp = "LONG|SHORT") val side: String,
     @field:DecimalMin("0.001") val quantity: Double,
-    @field:Min(1) @field:Max(125) val leverage: Int,
+    @field:Min(value = 1, message = "레버리지는 최소 1배입니다.") @field:Max(value = 125, message = "레버리지는 최대 125배입니다.") val leverage: Int,
     val accountId: String? = null,
     val userId: String? = null,
     val stopLoss: ExitConfig? = null,
@@ -28,45 +28,45 @@ data class OpenRequest(
 )
 
 data class CloseRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     val quantity: Double? = null,
 )
 
 data class LeverageRequest(
-    @field:NotBlank val symbol: String,
-    @field:Min(1) @field:Max(125) val leverage: Int,
+    @field:NotEmpty val symbol: String,
+    @field:Min(value = 1, message = "레버리지는 최소 1배입니다.") @field:Max(value = 125, message = "레버리지는 최대 125배입니다.") val leverage: Int,
 )
 
 data class MarginRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     @field:Pattern(regexp = "ISOLATED|CROSSED") val marginType: String,
 )
 
 data class TransferRequest(
-    @field:NotBlank val asset: String,
+    @field:NotEmpty val asset: String,
     @field:DecimalMin(value = "0.1", message = "최소 이체 금액은 0.1입니다.") val amount: Double,
     @field:Pattern(regexp = "SPOT|FUTURES") val fromAccountType: String,
     @field:Pattern(regexp = "SPOT|FUTURES") val toAccountType: String,
 )
 
 data class SwitchRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     @field:Pattern(regexp = "LONG|SHORT") val newSide: String,
     @field:DecimalMin("0.001") val newQuantity: Double,
 )
 
 data class AddRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     @field:DecimalMin("0.001") val addQuantity: Double,
 )
 
 data class ReduceRequest(
-    @field:NotBlank val symbol: String,
-    @field:DecimalMin("0.000001") val reduceQuantity: Double,
+    @field:NotEmpty val symbol: String,
+    @field:DecimalMin(value = "0.0001", message = "최소 청산 수량은 0.0001입니다.") val reduceQuantity: Double,
 )
 
 data class CloseAllRequest(
-    @field:NotBlank val symbol: String,
+    @field:NotEmpty val symbol: String,
     val memo: String? = null,
 )
 

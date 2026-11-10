@@ -41,3 +41,5 @@ out/
 
 ### macOS ###
 .DS_Store
+
+/scripts/node_modules/
