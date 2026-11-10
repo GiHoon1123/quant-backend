@@ -1,7 +1,7 @@
 # Quant Backend Kotlin
 
 Binance 시장 데이터·기술적 분석·주문·포지션·알림 백엔드의 Kotlin/Spring 마이그레이션이다.
-원본은 [Quant-Backend](https://github.com/GiHoon1123/Quant-Backend)이며 읽기 전용으로 보존한다.
+원본은 [Quant-Backend](https://github.com/GiHoon1123/quant-backend-nestjs)이며 읽기 전용으로 보존한다.
 
 ## 실행
 

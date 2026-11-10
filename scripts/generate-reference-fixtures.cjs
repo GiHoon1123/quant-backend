@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const ts = require(process.env.TYPESCRIPT_MODULE || 'typescript');
-const source = fs.readFileSync('../Quant-Backend/src/technical-analysis/service/TechnicalIndicatorService.ts', 'utf8');
+const source = fs.readFileSync('../quant-backend-nestjs/src/technical-analysis/service/TechnicalIndicatorService.ts', 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, experimentalDecorators: true } }).outputText;
 const moduleObject = { exports: {} };
 vm.runInNewContext(compiled, { exports: moduleObject.exports, module: moduleObject, require: () => ({ Injectable: () => target => target }), console: { log() {}, warn() {}, error() {} }, process: { env: {} } });

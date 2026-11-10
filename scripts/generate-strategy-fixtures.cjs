@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm');
 const ts=require(process.env.TYPESCRIPT_MODULE || 'typescript');
-const source='../Quant-Backend/src/technical-analysis/';
+const source='../quant-backend-nestjs/src/technical-analysis/';
 const enumExports={};
 function evaluate(path, requires){
  const module={exports:{}};
