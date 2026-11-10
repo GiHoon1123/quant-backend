@@ -20,6 +20,10 @@ repositories {
 }
 
 dependencies {
+    implementation("io.socket:socket.io-server:4.1.2")
+    implementation("io.socket:engine.io-server:6.3.2")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    runtimeOnly("org.postgresql:postgresql:42.7.7")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
