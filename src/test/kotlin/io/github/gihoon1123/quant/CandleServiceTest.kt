@@ -22,6 +22,15 @@ class CandleServiceTest {
     private val candle = CandleData(1000, 2000, 100.0, 103.0, 99.0, 102.0, 2.0)
 
     @Test
+    fun `test injection uses original separate cache key and manual completion event`() {
+        every { repository.save("BTCUSDT", "FUTURES", candle) } returns 42
+        assertEquals(42L, service.testCandle("BTCUSDT", candle)["id"])
+        assertEquals(emptyList<CandleData>(), service.memory("BTCUSDT"))
+        service.trigger("BTCUSDT")
+        assertEquals(listOf("candle.saved", "candle.completed"), emitted.filterIsInstance<MarketEvent>().map { it.name })
+    }
+
+    @Test
     fun `Binance numeric strings and timestamp fields parse and invalid fields fail`() {
         every { repository.validate(any(), any(), any()) } answers { callOriginal() }
         val mapper = JsonMapper.builder().build()
