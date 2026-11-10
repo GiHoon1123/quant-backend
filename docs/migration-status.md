@@ -25,13 +25,15 @@
 
 - 과거 캔들 4개 경로·중복 생략·재시도·최근 데이터 생략·날짜 실패 응답 테스트
 
+- 거래 이벤트 현물/선물 저장·포지션 종료 갱신, 원본 Bitcoin 더미 생성: PostgreSQL 검증
+
 ## 진행 중
 
 - 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
 
 ## 미구현
 
-- 거래·포지션·Bitcoin DB repository 연결 (스키마 SQL 자체는 보존)
+- 거래 이력 조회·집계 repository API 연결 (저장·종료 갱신은 검증)
 - 시장 데이터 startup DB preload·원본 테스트 입력 경로 및 서버 통계 방송
 - Binance Spot/Futures 주문·포지션·모니터링
 - 자동매매·ATR 설정 API·알림·Bitcoin transaction 처리
