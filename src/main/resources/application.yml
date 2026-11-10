@@ -1,0 +1,10 @@
+server:
+  port: ${PORT:3000}
+springdoc:
+  swagger-ui:
+    path: /api-docs
+  api-docs:
+    path: /openapi.json
+spring:
+  application:
+    name: quant-backend
