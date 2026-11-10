@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 data class MarketEvent(
     val name: String,
     val data: Map<String, Any?>,
+    val channel: String = "global",
 )
 
 @Service
@@ -111,6 +112,72 @@ class CandleService(
                 ),
             )
         }
+    }
+
+    fun preload(symbol: String) {
+        val stored = repository.latest(symbol, limit = maxMemory)
+        if (stored.isNotEmpty()) {
+            memory[symbol] = stored
+            latest[symbol] = stored.last()
+        }
+    }
+
+    fun testCandle(
+        symbol: String,
+        candle: CandleData,
+    ): Map<String, Any> {
+        val id = repository.save(symbol, "FUTURES", candle)
+        val key = "${symbol}_FUTURES_15m"
+        memory[key] = (memory[key].orEmpty() + candle).takeLast(maxMemory)
+        events.publishEvent(
+            MarketEvent(
+                "candle.saved",
+                mapOf(
+                    "symbol" to symbol,
+                    "market" to "FUTURES",
+                    "timeframe" to "15m",
+                    "candleData" to candle,
+                    "isNewCandle" to true,
+                    "savedAt" to clock.instant(),
+                    "candleId" to id,
+                ),
+            ),
+        )
+        return mapOf(
+            "id" to id,
+            "symbol" to symbol,
+            "market" to "FUTURES",
+            "timeframe" to "15m",
+            "openTime" to java.time.Instant.ofEpochMilli(candle.openTime),
+            "closeTime" to java.time.Instant.ofEpochMilli(candle.closeTime),
+            "open" to candle.open,
+            "high" to candle.high,
+            "low" to candle.low,
+            "close" to candle.close,
+            "volume" to candle.volume,
+            "quoteVolume" to candle.quoteVolume,
+            "trades" to candle.trades,
+            "takerBuyBaseVolume" to candle.takerBuyBaseVolume,
+            "takerBuyQuoteVolume" to candle.takerBuyQuoteVolume,
+        )
+    }
+
+    fun trigger(symbol: String) {
+        val candle = memory["${symbol}_FUTURES_15m"]?.lastOrNull() ?: return
+        events.publishEvent(
+            MarketEvent(
+                "candle.completed",
+                mapOf(
+                    "eventId" to UUID.randomUUID().toString(),
+                    "symbol" to symbol,
+                    "service" to "Candle15MService",
+                    "timestamp" to clock.instant(),
+                    "market" to "FUTURES",
+                    "timeframe" to "15m",
+                    "candle" to candle,
+                ),
+            ),
+        )
     }
 
     fun latest(symbol: String): CandleData? = latest[symbol]

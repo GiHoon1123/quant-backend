@@ -28,7 +28,12 @@ class MarketStream(
 
     @EventListener(ApplicationReadyEvent::class)
     fun start() {
-        if (enabled) (System.getenv("MONITORED_SYMBOLS") ?: "BTCUSDT").split(',').filter { it.isNotBlank() }.forEach(candles::subscribe)
+        if (enabled) {
+            (System.getenv("MONITORED_SYMBOLS") ?: "BTCUSDT").split(',').filter { it.isNotBlank() }.forEach {
+                runCatching { candles.preload(it) }
+                candles.subscribe(it)
+            }
+        }
     }
 
     @EventListener

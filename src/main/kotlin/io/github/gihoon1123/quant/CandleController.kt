@@ -73,6 +73,7 @@ class CandleController(
     @GetMapping("/subscription/status")
     fun status(): Map<String, Any?> = success("구독 상태 조회 성공", service.status() + ("retrievedAt" to clock.instant()))
 
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     @PostMapping("/subscription/add/{symbol}")
     fun subscribe(
         @PathVariable symbol: String,
@@ -81,6 +82,7 @@ class CandleController(
         return success("$symbol 구독이 추가되었습니다.", mapOf("symbol" to symbol, "addedAt" to clock.instant()))
     }
 
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     @PostMapping("/subscription/remove/{symbol}")
     fun unsubscribe(
         @PathVariable symbol: String,
@@ -98,10 +100,14 @@ class CandleController(
         return success("진행 중인 캔들 데이터 조회 성공", mapOf("symbol" to symbol, "candle" to candle, "retrievedAt" to clock.instant()))
     }
 
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     @PostMapping("/trigger/complete/{symbol}")
     fun trigger(
         @PathVariable symbol: String,
-    ): Map<String, Any?> = success("${symbol}의 캔들 완성 이벤트가 트리거되었습니다.", mapOf("symbol" to symbol, "triggeredAt" to clock.instant()))
+    ): Map<String, Any?> {
+        service.trigger(symbol)
+        return success("${symbol}의 캔들 완성 이벤트가 트리거되었습니다.", mapOf("symbol" to symbol, "triggeredAt" to clock.instant()))
+    }
 
     private fun success(
         message: String,

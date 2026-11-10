@@ -81,3 +81,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 원본 활성 포지션 DTO에는 side가 없지만 자동매매는 side를 참조한다. 포지션 보유 중 전환이 진행되지 않는 기존 경계도 보존했다.
 - 환율 3개 API는 순차 공급자 fallback과 1330 기본값을 보존한다. 로컬 fixture에서는 문자열 환율 거절·다음 공급자 선택·전체 실패 fallback을 확인했다. EXCHANGE_RATE_URLS로 외부 주소를 대체할 수 있다.
 - 실제 HTTP 실행에서 NaN/Infinity→null 직렬화 및 잘못된 주문 금액의 400 응답을 확인했다.
+
+## 스트림 수명·테스트 캔들
+- 선물 진입/종료에 따른 trade·1m·5m 스트림 참조 수와 최종 종료 해제를 이전했다. tick 300ms throttle을 검증했다. 원본 1m/5m 콜백은 로그만 남기며 손절 주문이나 저장을 수행하지 않는다.
+- 시장 스트림이 활성화됐을 때 DB의 최근 캔들을 먼저 적재한다. 테스트 캔들은 원본의 별도 `_FUTURES_15m` 키를 사용하고 수동 trigger는 candle.completed를 발행한다.
+- 원본은 WebSocket 캔들 DB 저장을 비동기로 시작하지만 이전본 accept는 저장 결과 후 완료 이벤트를 발행한다. 저장 실패에도 완료 이벤트는 유지하며, 해당 순서 차이는 종단 간 비교 대상이다.
+- 캔들 POST의 원본 HTTP 201을 명시했다. 테스트 주입 결과와 latest의 영속 엔티티 메타데이터(id/createdAt/updatedAt)는 아직 전체 JSON 대조가 필요하다.
