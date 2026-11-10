@@ -5,10 +5,13 @@
 - 원본 커밋·REST 경로 조사
 - Spring MVC 뼈대와 Swagger·오류 응답
 - 공통 오류 단위 테스트 2개, 빌드·ktlint 통과
+- SMA/EMA/RSI/MACD/Bollinger/VWAP/거래량/ATR·임계값 계산, 캐시 TTL, 손절/익절 계산
+- 원본 TypeScript를 직접 실행한 4개 시나리오(각 240봉)의 지표 전체 시계열을 Kotlin과 1e-9 허용오차로 비교
+- 단위 테스트 총 16개, Gradle build·ktlint 통과
 
 ## 진행 중
 
-- 기술적 지표와 캐시 이전 및 계산 호환 테스트
+- PostgreSQL 캔들 저장소·시장 데이터 API 이전
 
 ## 미구현
 
