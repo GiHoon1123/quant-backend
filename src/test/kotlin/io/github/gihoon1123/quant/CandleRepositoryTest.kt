@@ -24,6 +24,11 @@ class CandleRepositoryTest {
             assertEquals(1, rows.size)
             assertEquals(102.0, rows.single().close)
             assertEquals(1L, repository.statistics()["totalCount"])
+            val record = repository.record("BTCUSDT", candle.openTime)!!
+            assertEquals("102.00000000", record["close"])
+            assertEquals(java.time.Instant.ofEpochMilli(candle.openTime), record["openTime"])
+            org.junit.jupiter.api.Assertions
+                .assertNotNull(record["createdAt"])
         } finally {
             executor.shutdownNow()
         }

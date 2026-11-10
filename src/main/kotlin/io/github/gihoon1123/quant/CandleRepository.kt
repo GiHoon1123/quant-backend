@@ -119,6 +119,37 @@ class CandleRepository {
         }
     }
 
+    fun record(
+        symbol: String,
+        openTime: Long,
+    ): Map<String, Any?>? =
+        connection().use { connection ->
+            connection.prepareStatement("SELECT * FROM candle_15m WHERE symbol=? AND market='FUTURES' AND \"openTime\"=? LIMIT 1").use {
+                it.setString(1, symbol)
+                it.setTimestamp(2, Timestamp(openTime))
+                it.executeQuery().use { rows ->
+                    if (!rows.next()) {
+                        null
+                    } else {
+                        (1..rows.metaData.columnCount).associate { index ->
+                            val key = rows.metaData.getColumnName(index)
+                            key to
+                                when (key) {
+                                    "openTime", "closeTime", "createdAt", "updatedAt" ->
+                                        rows
+                                            .getTimestamp(
+                                                index,
+                                            ).toInstant()
+                                            .truncatedTo(java.time.temporal.ChronoUnit.MILLIS)
+                                    "id", "trades" -> rows.getInt(index)
+                                    else -> rows.getString(index)
+                                }
+                        }
+                    }
+                }
+            }
+        }
+
     fun contains(
         symbol: String,
         openTime: Long,
