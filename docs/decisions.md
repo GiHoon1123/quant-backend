@@ -35,3 +35,7 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 원본 connectionStatus는 JavaScript Map이라 JSON에서는 {}가 된다. 이 응답 모양을 유지한다. 원본 history API는 startTime/endTime을 응답에 싣지만 조회에 적용하지 않으므로 현재도 동일하다. 수동 trigger/complete는 원본의 잘못된 메모리 키로 기본 stream 경로에서 이벤트가 발생하지 않는 경우가 있어, 이 결함을 성공한 이벤트 실행으로 오인하지 않는다.
 
 검증 중 외부 네트워크를 열지 않도록 MARKET_STREAM_ENABLED=true일 때만 Binance stream에 연결한다. BINANCE_FUTURES_WS_URL로 로컬 모의 endpoint를 지정할 수 있다. 원본과 다른 명시적 실행 조건이며, 실제 외부 데이터 수집을 확인한 것으로 표시하지 않는다.
+
+## 원본 전략의 실제 범위
+
+고급 전략 중 smart money flow, pattern recognition, Elliott wave는 원본부터 고정값을 반환한다. 이름 때문에 실제 패턴·기관 자금 분석이 구현된 것처럼 문서화하지 않는다. Kotlin도 그 기존 출력 계약을 보존하며, 4개 입력 시퀀스에 대해 원본을 직접 실행한 전략 출력(신호·근거 문자열·지표)을 비교한다. multi-timeframe 역시 원본부터 네 시간봉 모두 같은 15분 DB 조회를 사용한다. 새로 고치지 않고 차후 별도 개선 과제로 남긴다.

@@ -15,6 +15,8 @@
 - Binance Kline 파서·옵트인 stream/reconnect, Socket.IO 구독·해지·상태 및 이벤트 전달
 - 실제 Node Socket.IO 4.8.1 클라이언트로 polling, WebSocket, transport upgrade 확인
 
+- 기본 5개·고급 5개 전략 출력 4개 시나리오 원본 비교 통과
+
 ## 진행 중
 
 - 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
@@ -23,7 +25,7 @@
 
 - 거래·포지션·Bitcoin DB repository 연결 (스키마 SQL 자체는 보존)
 - 시장 데이터 startup DB preload·전체 history 수집 API·원본 테스트 입력 경로 및 서버 통계 방송
-- 분석 서비스·기본/고급 전략과 API
+- 분석 서비스 집계와 API (전략 계산은 이전 완료)
 - Binance Spot/Futures 주문·포지션·모니터링
 - 자동매매·ATR 설정 API·알림·Bitcoin transaction 처리
 - 원본 테스트 전용 REST 경로
