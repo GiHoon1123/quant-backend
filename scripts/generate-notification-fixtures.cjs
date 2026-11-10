@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm');
 const ts=require(process.env.TYPESCRIPT_MODULE||'typescript');
 process.env.TZ='UTC';
 const mod={exports:{}};let captured;
-const source=ts.transpileModule(fs.readFileSync('../Quant-Backend/src/notification/infra/client/TelegramClient.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,experimentalDecorators:true}}).outputText;
+const source=ts.transpileModule(fs.readFileSync('../quant-backend-nestjs/src/notification/infra/client/TelegramClient.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,experimentalDecorators:true}}).outputText;
 const axios={post:async(url,payload)=>{captured=payload.text;return {status:200}}};
 vm.runInNewContext(source,{module:mod,exports:mod.exports,Date,console:{log(){},warn(){},error(){}},require:name=>name==='axios'?{default:axios}:name==='@nestjs/common'?{Injectable:()=>x=>x}:{} });
 (async()=>{
