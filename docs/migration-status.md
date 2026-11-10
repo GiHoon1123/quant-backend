@@ -9,14 +9,20 @@
 - 원본 TypeScript를 직접 실행한 4개 시나리오(각 240봉)의 지표 전체 시계열을 Kotlin과 1e-9 허용오차로 비교
 - 단위 테스트 총 16개, Gradle build·ktlint 통과
 
+- 원본 PostgreSQL schema SQL 추출, candle_15m 저장·갱신·정렬·통계
+- 실제 PostgreSQL 동시 동일 캔들 저장 8건과 값 갱신 테스트
+- candle REST 조회/구독/진행 중 데이터와 ATR config API
+- Binance Kline 파서·옵트인 stream/reconnect, Socket.IO 구독·해지·상태 및 이벤트 전달
+- 실제 Node Socket.IO 4.8.1 클라이언트로 polling, WebSocket, transport upgrade 확인
+
 ## 진행 중
 
-- PostgreSQL 캔들 저장소·시장 데이터 API 이전
+- 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
 
 ## 미구현
 
-- PostgreSQL 저장 경로와 전체 기존 스키마 연결
-- 15분봉 수집·히스토리·구독 및 Socket.IO 계약
+- 거래·포지션·Bitcoin DB repository 연결 (스키마 SQL 자체는 보존)
+- 시장 데이터 startup DB preload·전체 history 수집 API·원본 테스트 입력 경로 및 서버 통계 방송
 - 분석 서비스·기본/고급 전략과 API
 - Binance Spot/Futures 주문·포지션·모니터링
 - 자동매매·ATR 설정 API·알림·Bitcoin transaction 처리
