@@ -68,3 +68,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 원본 TransactionService는 거래 구분 없이 모든 trade.executed를 현물·선물 테이블에 순서대로 저장한다. 이 동작과 실패가 주문 결과를 바꾸지 않고 실패 이벤트로 남는 계약을 유지했다.
 - 원본 bigint 주문 ID를 유지하며 decimal은 JDBC BigDecimal로 저장한다. 선물 종료 시 손익·청산 여부·보유 초를 갱신한다. 실제 PostgreSQL 테스트로 확인했다.
 - 원본 Bitcoin 파서는 노드 조회가 아닌 무작위 더미 생성이다. 이를 BitcoinFixtureRepository로 명시해 보존했다. txid·주소는 유효한 온체인 데이터가 아니고 parsedBy=dummy-parser-v1이다. 실제 Bitcoin 파싱 구현으로 주장하지 않는다.
+
+## 선물 포지션 REST
+- 12개 포지션·레버리지·마진·이체 경로를 이전했다. 포지션 수량 부호를 LONG/SHORT과 절대 수량으로 분리하고, 부족 마진·초과 청산 수량은 주문 전에 거절한다.
+- 원본의 switch/add/reduce는 내부 오류를 구체적 원인 없이 500으로 바꾼다. 원본 full close의 미지정 수량은 quantity 없이 reduceOnly=true를 제출한다. 그대로 보존하며 거래소가 받아주는 올바른 거래라고 주장하지 않는다.
+- switch의 종료 이벤트 orderId에는 `_close` 접미사가 붙지만 DB는 bigint이다. 원본과 같은 이벤트를 전달하고 저장 실패 이벤트로 남긴다. 실제 주문과 저장 실패 사이의 문제는 기존 결함이다.
+- 핵심 테스트는 short mapping·손익 비율·리스크 필터·초과 수량 방어·마진 부족 미제출·전환 이벤트를 확인했다. 실제 거래소 주문은 수행하지 않았다.
