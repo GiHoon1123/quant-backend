@@ -25,7 +25,12 @@ class ExchangeRate(
             "Fixer.io" to "http://data.fixer.io/api/latest?access_key=free&base=USD&symbols=KRW",
             "Open Exchange Rates" to "https://open.er-api.com/v6/latest/USD",
         )
-    private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()
+    private val client =
+        HttpClient
+            .newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()
     private val mapper = JsonMapper.builder().build()
 
     fun rate(): Double {

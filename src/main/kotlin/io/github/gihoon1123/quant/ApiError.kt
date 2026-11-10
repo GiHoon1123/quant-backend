@@ -46,5 +46,10 @@ class ApiErrors {
         ResponseEntity.status(404).body(CommonResponse(404, "Cannot ${error.httpMethod} /${error.resourcePath}", null))
 
     @ExceptionHandler(Exception::class)
-    fun unexpected(): ResponseEntity<CommonResponse<Nothing>> = ResponseEntity.status(500).body(CommonResponse(500, "서버 오류가 발생했습니다.", null))
+    fun unexpected(error: Exception? = null): ResponseEntity<CommonResponse<Nothing>> {
+        org.slf4j.LoggerFactory
+            .getLogger(ApiErrors::class.java)
+            .error("Unexpected API exception", error)
+        return ResponseEntity.status(500).body(CommonResponse(500, "서버 오류가 발생했습니다.", null))
+    }
 }

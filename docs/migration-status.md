@@ -1,59 +1,39 @@
-# 구현·검증 상태
+# 마이그레이션 구현·검증 상태
 
-## 완료
+## 구현
 
-- 원본 커밋·REST 경로 조사
-- Spring MVC 뼈대와 Swagger·오류 응답
-- 공통 오류 단위 테스트 2개, 빌드·ktlint 통과
-- SMA/EMA/RSI/MACD/Bollinger/VWAP/거래량/ATR·임계값 계산, 캐시 TTL, 손절/익절 계산
-- 원본 TypeScript를 직접 실행한 4개 시나리오(각 240봉)의 지표 전체 시계열을 Kotlin과 1e-9 허용오차로 비교
-- 단위 테스트 총 16개, Gradle build·ktlint 통과
+원본 커밋 `67b75b9b5d11e39f26ebad1cc09916ca83fa5521`의 REST 69개 경로를 이전했다. 실행 중인 Spring OpenAPI에서도 69개를 전수 확인했다.
 
-- 원본 PostgreSQL schema SQL 추출, candle_15m 저장·갱신·정렬·통계
-- 실제 PostgreSQL 동시 동일 캔들 저장 8건과 값 갱신 테스트
-- candle REST 조회/구독/진행 중 데이터와 ATR config API
-- Binance Kline 파서·옵트인 stream/reconnect, Socket.IO 구독·해지·상태 및 이벤트 전달
-- 실제 Node Socket.IO 4.8.1 클라이언트로 polling, WebSocket, transport upgrade 확인
+- 시장 데이터: PostgreSQL 캔들 저장/갱신·조회·통계, 제한된 메모리 캐시, 과거 데이터 배치 수집·재시도·재개, Binance WS 수신/재연결
+- Socket.IO: 같은 HTTP 포트의 `/candle15m`, polling/WebSocket/upgrade, 구독·해제·최신/갱신/완료 이벤트
+- 분석: SMA/EMA/VWAP/RSI/MACD/Bollinger/거래량/ATR, 기본 5개·고급 5개 전략, 9개 분석 REST, 새 캔들의 ATR 캐시·확장 분석 이벤트
+- 거래: Spot 6개·Futures 12개 REST, HMAC 서명·query/form 계약, 금액/수량·마진 검증, 포지션 수명과 동적 스트림
+- 저장: 원본 스키마의 현물·선물·Bitcoin 모델, 거래 이벤트 저장·청산 갱신, 기간/계정 필터·조회·집계
+- 자동매매: 조건·ATR/기본 비율·포지션 크기·글로벌 신호 소비, 원본 고정 응답 3개 API
+- 알림: 로컬 기술 이벤트 소비, HOLD 제외·분 단위 중복 방지, Telegram 객관적 분석 리포트·HTTP 발송 경계·통계
+- 환율 3개, ATR 설정 3개, 통합 테스트 7개·레거시 테스트 12개·캔들 테스트 1개 REST
 
-- 기본 5개·고급 5개 전략 출력 4개 시나리오 원본 비교 통과
+## 검증
 
-- 분석 집계·지표 요약과 REST 9개 경로, 원본 전체 결과 fixture 4종 비교
+- Gradle build·ktlint 및 전용 PostgreSQL 16 테스트
+- 원본 TypeScript 지표·전략·집계 분석: 각 240봉의 4개 시퀀스 전체 수치 비교
+- 원본 Telegram 리포트 3종·종합 리포트 4종 전체 문자열 비교
+- 실제 DB의 동일 캔들 동시 저장 8건·업데이트·decimal·기간 필터·거래 종료·더미 Bitcoin 데이터 검증
+- 별도 JVM + 로컬 Binance HTTP/WS + 실제 Socket.IO 클라이언트 종단 간 검증: 요청 서명·캔들 프레임·구독 방송·주문 201·잘못된 입력 400·비정상 숫자 JSON null
+- 원본 TypeORM 저장소를 PostgreSQL에서 직접 실행해 집계 alias 결함 확인
 
-- Spot·Futures 서명 HTTP 어댑터: 로컬 서버에서 서명·헤더·query/form과 오류 매핑 검증
+## 보존한 원본의 미완성 동작
 
-- Spot 주문 6개 REST·trade.executed 이벤트, 체결 평균·수수료·잔고 방어 테스트
+- 고급 전략 일부는 상수/예시이며 실제 다중 시간봉을 조회하지 않는다.
+- 자동매매 status/backtest는 고정 예시, manual-signal은 실제 신호를 발행하지 않는다.
+- Bitcoin 파서는 온체인 조회가 아닌 `dummy-parser-v1` 데이터 생성이다.
+- 레거시 cleanup은 실제 삭제를 하지 않고 real-event-chain은 원본의 구현 중 응답을 반환한다.
+- 지정가 매수 feeRate 인자·전환 주문 bigint ID·집계 alias 등의 기존 결함을 별도 개선으로 위장하지 않았다.
 
-- 과거 캔들 4개 경로·중복 생략·재시도·최근 데이터 생략·날짜 실패 응답 테스트
+## 운영 조건과 차이
 
-- 거래 이벤트 현물/선물 저장·포지션 종료 갱신, 원본 Bitcoin 더미 생성: PostgreSQL 검증
+실거래·실제 알림·운영 DB로 검증하지 않았다. 외부 거래는 `TRADING_ENABLED=true`, 외부 알림은 `NOTIFICATIONS_ENABLED=true`, 실시간 시장 구독은 `MARKET_STREAM_ENABLED=true`로 명시적으로 활성화한다. 개발 기본 시작에는 키나 외부 연결이 필요하지 않다.
 
-- Futures 포지션 12개 REST: 조회·진입·청산·전환·추가/축소·이체·리스크 필터 및 핵심 테스트
+원본 내부 helper 중 호출자가 없는 개별/고급 알림 템플릿과 장식용 로그 메서드는 공개 REST·현재 이벤트 흐름에 연결되지 않아 그대로 번역하지 않았다. 현재 실행 경로의 계약을 검증 대상으로 삼았으며 내부 TypeScript 클래스 API 자체의 호환성을 제공하지 않는다.
 
-- 자동매매 HTTP 3개(원본의 고정 예시/무동작 계약), 조건·ATR·수량 계산·신호 소비
-- 환율 3개 API와 공급자 fallback 로컬 HTTP 테스트
-
-- 포지션 스트림 참조 수·tick throttle, 시장 DB preload와 테스트 캔들/수동 완료 경로
-
-- 캔들 저장→ATR/분석→로컬 analysis.completed 파이프라인, 글로벌 자동매매 버스 격리 테스트
-
-- 통합 테스트 전용 7개 REST 계산·기본값·동적 구독 트리거 경로
-
-- Telegram HTTP 전송 경계·객관적 리포트 원본 3종 전체 문자열 비교·알림 중복/버스 격리
-
-- 레거시 테스트 12개 경로와 종합 리포트 4종 원본 문자열 비교
-
-- 거래 조회·필터·페이지와 집계, 원본 TypeORM 집계 alias 결함 직접 확인
-
-## 진행 중
-
-- 시장 데이터 모듈의 통합 시나리오와 남은 경로 이전
-
-## 미구현
-
-- 보조 알림/비공개 helper의 이전 범위 최종 정리
-- 캔들 저장·분석·Socket.IO 동시 흐름 로컬 통합 비교
-- 거래소 포지션 WS의 실제 로컬 프레임 통합 검증 (수명/파싱은 구현)
-- 개별/고급 알림 템플릿·통계 내부 message 대조, 자동매매 이벤트 종단 간 비교
-- REST 경로 전수 누락 검사·실행 상태/JSON 세부 대조
-
-현재 완료본이 아니므로 원본 이름은 유지한다. 이 문서는 실제 검증마다 갱신한다.
+동기 캔들 저장 후 완료 이벤트를 내보내는 순서, 스크리닝 순차 처리, HTTP timeout·기본 외부 실행 제한 등 의도적인 차이는 `decisions.md`에 기록했다. 저장소 이름 변경은 전체 작업을 조정하는 상위 작업에서 수행한다.

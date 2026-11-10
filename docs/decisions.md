@@ -116,3 +116,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 현물/선물/Bitcoin의 id·주문/txid 조회, 기간·심볼·계정·종료 상태 필터와 페이지를 제공한다. 원본 TypeORM처럼 decimal·bigint는 문자열로 읽고 JSON과 timestamp는 구분한다.
 - 원본 SpotTradeRecordRepository를 TypeORM 0.3.25·PostgreSQL 테스트 DB에서 직접 실행해 raw alias가 totaltrades 등으로 소문자화되고 원본 camelCase 조회가 0을 반환함을 확인했다. 이 기존 집계 결함을 마이그레이션에서 조용히 정정하지 않는다.
 - 실제 DB에 저장한 행의 기간 필터·금액 문자열·주문 ID 및 원본 집계 반환을 검증했다.
+
+## 최종 통합 검증
+- 실제 JVM의 OpenAPI에서 원본 69개 경로를 전수 비교하고, 로컬 Binance HTTP/WS와 실제 Socket.IO 클라이언트를 연결했다. 서명·주문 201·잘못된 입력 400·캔들 갱신 방송·NaN/Infinity null 직렬화를 확인했다.
+- HTTP/WS를 함께 제공하는 로컬 fixture에서 JDK의 기본 h2c upgrade가 충돌했다. 원본 axios의 HTTP/1.1과 맞추도록 거래소·환율·알림 HTTP 클라이언트를 고정했다.
+- 타입 DTO는 미정의 필드와 문자열→숫자 암묵 변환을 거절하며, 원본의 cancel 지원 심볼 제약과 최소 수량을 맞췄다. 전체 class-validator 오류의 다중 실패 선택 순서는 Bean Validation과 다를 수 있다.
+- 원본에 호출자가 없는 내부 알림 템플릿·장식용 helper는 공개 경로나 현재 이벤트 흐름의 구현으로 간주하지 않는다. 현재 연결된 REST/이벤트와 DB 계약을 이전 범위로 기록했다.

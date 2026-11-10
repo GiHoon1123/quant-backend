@@ -2,7 +2,7 @@ package io.github.gihoon1123.quant
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMin
-import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
@@ -252,7 +252,7 @@ class Orders(
 }
 
 data class MarketBuyRequest(
-    @field:NotBlank(message = "symbol should not be empty") val symbol: String,
+    @field:NotEmpty(message = "symbol should not be empty") val symbol: String,
     @field:DecimalMin(value = "10", message = "주문 금액은 최소 10 USDT 이상이어야 합니다.") val usdtAmount: Double,
     val accountId: String? = null,
     val userId: String? = null,
@@ -261,14 +261,14 @@ data class MarketBuyRequest(
 )
 
 data class MarketSellRequest(
-    @field:NotBlank(message = "symbol should not be empty") val symbol: String,
+    @field:NotEmpty(message = "symbol should not be empty") val symbol: String,
     @field:DecimalMin(value = "0.000001", message = "quantity는 최소 0.000001 이상이어야 합니다.") val quantity: Double,
     val accountId: String? = null,
     val userId: String? = null,
 )
 
 data class LimitRequest(
-    @field:NotBlank(message = "symbol should not be empty") val symbol: String,
+    @field:NotEmpty(message = "symbol should not be empty") val symbol: String,
     @field:DecimalMin(value = "0.000001", message = "quantity는 최소 0.000001 이상이어야 합니다.") val quantity: Double,
     @field:DecimalMin(value = "0.000001", message = "price는 0보다 커야 합니다.") val price: Double,
     val stopLoss: ExitConfig? = null,
@@ -276,7 +276,12 @@ data class LimitRequest(
 )
 
 data class CancelRequest(
-    @field:NotBlank(message = "symbol should not be empty") val symbol: String,
+    @field:jakarta.validation.constraints.Pattern(
+        regexp = "BTCUSDT|ETHUSDT|SOLUSDT|BNBUSDT|XRPUSDT|ADABTC|ADAUSDT|DOGEUSDT|AVAXUSDT|DOTUSDT|LINKUSDT|MATICUSDT|SHIBUSDT|LTCUSDT|TRXUSDT|OPUSDT|ARBUSDT|ATOMUSDT|NEARUSDT|BCHUSDT|ETCUSDT|UNIBTC|UNIUSDT|XLMUSDT|XMRUSDT|EOSUSDT|FILUSDT|ICPUSDT|MKRUSDT|SUSHIUSDT|AAVEUSDT|GRTUSDT|DOGEBTC|BTCBUSD|ETHBUSD|USDTUSD|BUSDUSDT",
+        flags = [jakarta.validation.constraints.Pattern.Flag.CASE_INSENSITIVE],
+        message = "지원하지 않는 코인 심볼입니다.",
+    )
+    @field:NotEmpty(message = "symbol should not be empty") val symbol: String,
     @field:Positive(message = "orderId는 양수여야 합니다.") val orderId: Long,
 )
 
