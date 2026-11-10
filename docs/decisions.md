@@ -74,3 +74,10 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 원본의 switch/add/reduce는 내부 오류를 구체적 원인 없이 500으로 바꾼다. 원본 full close의 미지정 수량은 quantity 없이 reduceOnly=true를 제출한다. 그대로 보존하며 거래소가 받아주는 올바른 거래라고 주장하지 않는다.
 - switch의 종료 이벤트 orderId에는 `_close` 접미사가 붙지만 DB는 bigint이다. 원본과 같은 이벤트를 전달하고 저장 실패 이벤트로 남긴다. 실제 주문과 저장 실패 사이의 문제는 기존 결함이다.
 - 핵심 테스트는 short mapping·손익 비율·리스크 필터·초과 수량 방어·마진 부족 미제출·전환 이벤트를 확인했다. 실제 거래소 주문은 수행하지 않았다.
+
+## 자동매매·환율
+- 원본 /auto-trading/status와 backtest는 고정 예시를 반환하고 manual-signal은 신호를 실제 발행하지 않는다. 이 HTTP 계약을 그대로 보존하며 실행 가능한 백테스트라고 주장하지 않는다.
+- analysis.completed 진입 조건·롱/숏의 비대칭 임계값·ATR 우선 손절/익절·포지션 크기 계산과 trading.signal 소비를 이전했다. 기본 분석은 technical.analysis.completed를 발행하므로 원본과 같이 자동매매 이벤트와 직접 연결되지 않는다.
+- 원본 활성 포지션 DTO에는 side가 없지만 자동매매는 side를 참조한다. 포지션 보유 중 전환이 진행되지 않는 기존 경계도 보존했다.
+- 환율 3개 API는 순차 공급자 fallback과 1330 기본값을 보존한다. 로컬 fixture에서는 문자열 환율 거절·다음 공급자 선택·전체 실패 fallback을 확인했다. EXCHANGE_RATE_URLS로 외부 주소를 대체할 수 있다.
+- 실제 HTTP 실행에서 NaN/Infinity→null 직렬화 및 잘못된 주문 금액의 400 응답을 확인했다.
