@@ -11,7 +11,7 @@ import java.time.ZoneOffset
 class StrategyParityTest {
     @Test
     fun `ten strategies match original signals conditions and numeric outputs`() {
-        val mapper = JsonMapper.builder().build()
+        val mapper = JsonMapper.builder().addModule(JsonConfiguration().javascriptNumbers()).build()
         val candles = mapper.readTree(javaClass.getResourceAsStream("/indicator-reference.json"))
         val expected = mapper.readTree(javaClass.getResourceAsStream("/strategy-reference.json"))
         val strategies = Strategies(Indicators(), Clock.fixed(Instant.ofEpochMilli(1794268800000), ZoneOffset.UTC))
@@ -48,7 +48,6 @@ class StrategyParityTest {
                 assertEquals(expected.propertyNames().toSet(), actual.propertyNames().toSet(), path)
                 for (key in expected.propertyNames()) compare(expected[key], actual[key], "$path.$key")
             }
-            expected.isNull && actual.isString && actual.asString() in listOf("NaN", "Infinity", "-Infinity") -> Unit
             else -> assertEquals(expected, actual, path)
         }
     }

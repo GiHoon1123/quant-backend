@@ -39,3 +39,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 ## 원본 전략의 실제 범위
 
 고급 전략 중 smart money flow, pattern recognition, Elliott wave는 원본부터 고정값을 반환한다. 이름 때문에 실제 패턴·기관 자금 분석이 구현된 것처럼 문서화하지 않는다. Kotlin도 그 기존 출력 계약을 보존하며, 4개 입력 시퀀스에 대해 원본을 직접 실행한 전략 출력(신호·근거 문자열·지표)을 비교한다. multi-timeframe 역시 원본부터 네 시간봉 모두 같은 15분 DB 조회를 사용한다. 새로 고치지 않고 차후 별도 개선 과제로 남긴다.
+
+## 분석 오케스트레이션
+- 원본 서비스 전체의 전략 결과·합의도·지표 요약을 원본 TypeScript 실행 fixture 4종과 대조했다. HTTP 노출 9개 경로를 이전했다.
+- JavaScript JSON.stringify와 맞추기 위해 Double의 NaN·Infinity는 JSON null로 직렬화한다. 0인 손절 거리의 원본 결과도 이 규칙을 따른다.
+- 원본의 strategies 필터 무시, advanced 경로의 고정 SmartMoney 호출, health의 실제 구현보다 넓은 기능 광고 문자열도 그대로 보존했다. 문자열이 구현 완료를 의미하지 않는다.
+- 스크리닝 결과 계약은 유지하지만 현재 심볼 처리는 순차 실행한다. 원본의 5개 배치·1초 대기와 실행 속도는 다르다.
