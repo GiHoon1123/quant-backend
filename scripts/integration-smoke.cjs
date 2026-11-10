@@ -2,6 +2,7 @@ const assert=require('node:assert/strict'),http=require('node:http'),net=require
 const {WebSocketServer}=require(process.env.WS_MODULE||'ws');
 const {io}=require(process.env.SOCKET_IO_CLIENT_MODULE||'socket.io-client');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const deadline=(promise,ms,label)=>Promise.race([promise,new Promise((_,reject)=>{const timer=setTimeout(()=>reject(Error(label)),ms);timer.unref()})]);
 (async()=>{
 const probe=net.createServer();await new Promise(r=>probe.listen(0,'127.0.0.1',r));const port=probe.address().port;await new Promise(r=>probe.close(r));
 let orders=0,signatures=0;const frames=[];
@@ -23,7 +24,7 @@ try{
  for(let attempt=0;attempt<100;attempt++){try{if((await fetch(base+'/actuator/health')).ok)break}catch{}if(attempt===99)throw Error('startup timeout: '+log.slice(-2000));await sleep(100)}
  const schema=await (await fetch(base+'/openapi.json')).json();
  const routes=require('../docs/routes.json');for(const [method,path] of routes){const converted=path.replace(/:([A-Za-z0-9_]+)/g,'{$1}');assert.ok(schema.paths[converted]?.[method.toLowerCase()],`Missing runtime route ${method} ${converted}`);}
- socket=io(base+'/candle15m',{transports:['websocket'],reconnection:false});await new Promise((resolve,reject)=>{socket.once('connected',resolve);socket.once('connect_error',reject)});socket.on('candle.update',x=>frames.push(x));socket.emit('subscribe',['BTCUSDT']);
+ socket=io(base+'/candle15m',{transports:['websocket'],reconnection:false});await deadline(new Promise((resolve,reject)=>{socket.once('connected',resolve);socket.once('connect_error',reject)}),10000,'Socket.IO connection timeout');socket.on('candle.update',x=>frames.push(x));socket.emit('subscribe',['BTCUSDT']);
  for(let n=0;n<100&&sockets.length===0;n++)await sleep(20);assert.ok(sockets.length);
  const k={t:1700100000000,T:1700100899999,o:'100',h:'103',l:'99',c:'102',v:'2',q:'200',n:7,V:'1',Q:'100',x:false};
  sockets[0].send(JSON.stringify({s:'BTCUSDT',k}));await sleep(100);k.x=true;sockets[0].send(JSON.stringify({s:'BTCUSDT',k}));await sleep(300);
@@ -33,5 +34,5 @@ try{
  assert.equal(orders,1);
  const risk=await fetch(base+'/api/v1/analysis/technical/risk/position-size',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accountBalance:1000,riskPercentage:1,entryPrice:10,stopLossPrice:10})});assert.equal((await risk.json()).data.recommendedPositionSize,null);
  console.log('PASS: fake Binance HTTP signatures, actual WebSocket candle frames, actual Socket.IO delivery, order response/validation, JSON null behavior');
-}catch(error){console.error(log.slice(-14000));throw error;}finally{socket?.close();child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));for(const s of sockets)s.terminate();await new Promise(r=>ws.close(r));await new Promise(r=>fake.close(r));}
+}catch(error){console.error(log.slice(-14000));throw error;}finally{socket?.close();child.kill('SIGTERM');await Promise.race([new Promise(r=>{if(child.exitCode!==null)r();else child.once('exit',r)}),sleep(5000).then(()=>child.kill('SIGKILL'))]);for(const s of sockets)s.terminate();await new Promise(r=>ws.close(r));fake.closeAllConnections();await new Promise(r=>fake.close(r));}
 })().catch(e=>{console.error(e);process.exit(1)});

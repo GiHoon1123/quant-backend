@@ -44,4 +44,5 @@ jobs:
       - name: Install contract test clients
         run: npm ci --prefix scripts --no-audit --no-fund
       - name: Local exchange and Socket.IO integration
+        timeout-minutes: 2
         run: npm run integration --prefix scripts
