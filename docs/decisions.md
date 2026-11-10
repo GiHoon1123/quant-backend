@@ -17,3 +17,7 @@ DEX 프로젝트와 버전을 동일하게 고정한다. REST API는 Spring MVC�
 ## 분석 중 발견한 원본 미완성
 
 TechnicalIndicatorService.getCandlesForSymbol은 빈 배열을 반환한다. 원본 구현에 있는 이 미완성 경로는 정상 ATR 서비스로 간주하지 않으며, 실제 캔들 저장소 연결 여부를 별도로 기록한다.
+
+## 계산 결과 비교 재생성
+
+원본 TS는 수정하지 않고 TypeScript 5.9.3의 transpileModule로 메모리 변환해 실행한다. scripts/generate-reference-fixtures.cjs에서 부작용 없는 지표 함수를 실행하고 테스트 표본을 만든다. 네 가지 시세(상승·하락·진동·고정), 각 240개 캔들을 사용한다. 다시 만들려면 별도 임시 npm 경로에 typescript@5.9.3을 설치하고 TYPESCRIPT_MODULE을 해당 경로로 지정한다. JVM 테스트에는 Node가 필요 없다.
