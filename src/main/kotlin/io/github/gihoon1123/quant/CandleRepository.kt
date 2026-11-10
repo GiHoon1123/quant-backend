@@ -119,6 +119,32 @@ class CandleRepository {
         }
     }
 
+    fun contains(
+        symbol: String,
+        openTime: Long,
+    ): Boolean =
+        connection().use { connection ->
+            connection.prepareStatement("SELECT 1 FROM candle_15m WHERE symbol=? AND market='FUTURES' AND \"openTime\"=? LIMIT 1").use {
+                it.setString(1, symbol)
+                it.setTimestamp(2, Timestamp(openTime))
+                it.executeQuery().use { rows -> rows.next() }
+            }
+        }
+
+    fun bounds(symbol: String): Triple<Long, Long?, Long?> =
+        connection().use { connection ->
+            connection
+                .prepareStatement(
+                    "SELECT count(*) AS total,min(\"openTime\") AS first,max(\"openTime\") AS last FROM candle_15m WHERE symbol=? AND market='FUTURES' AND timeframe='15m'",
+                ).use {
+                    it.setString(1, symbol)
+                    it.executeQuery().use { rows ->
+                        check(rows.next())
+                        Triple(rows.getLong("total"), rows.getTimestamp("first")?.time, rows.getTimestamp("last")?.time)
+                    }
+                }
+        }
+
     fun statistics(): Map<String, Any?> =
         connection().use { connection ->
             connection.createStatement().use { statement ->
