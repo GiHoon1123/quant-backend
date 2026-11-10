@@ -102,3 +102,7 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 객관적 분석 리포트의 BUY/SELL/STRONG_BUY 3종은 원본 TelegramClient를 실행해 문자열 전체를 비교했다. 원본의 이중 달러 표시 등 기존 표현도 유지했다.
 - 기술 도메인 analysis.completed만 알림을 소비하고 HOLD를 제외한다. 심볼·신호·타입·시간봉·분 단위 중복 방지와 완료 이벤트를 검증했다.
 - 통계 recentMessages.message는 현재 실제 Telegram 리포트를 담으며, 원본 NotificationService의 별도 내부 Markdown 메시지와 차이가 있다. 개별/고급 전략 알림 템플릿 전체는 아직 대조 대상이다.
+
+## 레거시 테스트·리포트
+- 원본 legacy 12개 경로의 테스트 ID·응답·저장/이벤트 범위를 이전했다. 원본 cleanup은 실제 삭제를 하지 않으며, real-event-chain도 저장 후 “아직 구현 중”을 반환한다. 별도 TestService 버스의 알림/캔들 이벤트는 실제 처리 버스로 연결하지 않는다.
+- 종합 리포트는 원본 지표 서비스의 4개 데이터 시퀀스에서 전체 문자열을 비교했다. 고정 BTCUSDT 제목과 시스템 시간대에 9시간을 더하는 원본 동작도 유지했다.
