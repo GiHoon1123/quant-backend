@@ -45,3 +45,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - JavaScript JSON.stringify와 맞추기 위해 Double의 NaN·Infinity는 JSON null로 직렬화한다. 0인 손절 거리의 원본 결과도 이 규칙을 따른다.
 - 원본의 strategies 필터 무시, advanced 경로의 고정 SmartMoney 호출, health의 실제 구현보다 넓은 기능 광고 문자열도 그대로 보존했다. 문자열이 구현 완료를 의미하지 않는다.
 - 스크리닝 결과 계약은 유지하지만 현재 심볼 처리는 순차 실행한다. 원본의 5개 배치·1초 대기와 실행 속도는 다르다.
+
+## 거래소 HTTP 경계
+- Spot query와 Futures form body의 파라미터 순서·HMAC-SHA256 서명·API 키 헤더를 보존했다. 기준 시간은 주입한 Clock을 사용한다.
+- 로컬 HTTP 서버에서 주문·취소·잔고·선물 진입/청산/축소·계정 이체 요청을 캡처했다. 실거래 및 외부 알림은 수행하지 않았다.
+- 원본은 키가 없으면 전체 시작이 실패한다. 이전본은 시작 후 거래 호출 시 확인하며, 외부 거래는 TRADING_ENABLED=true가 필요하다. 로컬 fixture 서버는 별도 활성화 없이 사용할 수 있다.
+- 원본은 Spot에 timeout이 없으나 이전본은 10초 상한을 둔다. Binance의 오류 코드·stepSize 안내와 상태 매핑은 보존했다.
