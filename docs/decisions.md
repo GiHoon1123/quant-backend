@@ -87,3 +87,8 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 시장 스트림이 활성화됐을 때 DB의 최근 캔들을 먼저 적재한다. 테스트 캔들은 원본의 별도 `_FUTURES_15m` 키를 사용하고 수동 trigger는 candle.completed를 발행한다.
 - 원본은 WebSocket 캔들 DB 저장을 비동기로 시작하지만 이전본 accept는 저장 결과 후 완료 이벤트를 발행한다. 저장 실패에도 완료 이벤트는 유지하며, 해당 순서 차이는 종단 간 비교 대상이다.
 - 캔들 POST의 원본 HTTP 201을 명시했다. 테스트 주입 결과와 latest의 영속 엔티티 메타데이터(id/createdAt/updatedAt)는 아직 전체 JSON 대조가 필요하다.
+
+## 캔들→분석 이벤트 경계
+- 원본 Candle15MService는 글로벌 EventEmitter2를, TechnicalAnalysisEventService는 별도 Node EventEmitter를 가진다. Kotlin MarketEvent.channel로 글로벌/technical 버스를 구분했다. 로컬 분석 이벤트가 글로벌 자동매매로 새로 유입되지 않도록 테스트했다.
+- 새 candle.saved에만 ATR 캐시·기본/고급 전략·지표 요약을 계산하고, 알림이 소비하는 확장 analysis.completed를 발행한다. 불충분한 지표 데이터는 원본 HOLD/N/A fallback을 유지한다.
+- 앞선 자동매매 설명의 “직접 연결되지 않음”은 API analyze 이벤트와 별도 도메인 버스의 구분을 의미한다. 캔들 저장→분석→알림 파이프라인 자체는 별도로 존재한다.

@@ -96,6 +96,7 @@ class AutoTrading(
 
     @EventListener
     fun event(event: MarketEvent) {
+        if (event.channel != "global") return
         if (event.name == "analysis.completed") {
             runCatching {
                 val symbol = event.data["symbol"].toString()
