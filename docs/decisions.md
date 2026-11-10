@@ -63,3 +63,8 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 - 원본은 최종 실패 배치를 건너뛰고 success=true와 errors를 함께 반환하며, 개별 DB 저장 실패도 로그만 남긴다. 현재 결과 의미를 유지했고 이 값을 완전 수집 보장으로 해석하지 않는다.
 - 원본 통계의 dataGaps는 계산하지 않는 빈 배열이다. 완성률의 분모도 봉 양끝의 차이/15분으로 보존했다.
 - 원본 fetch의 axios 오류 문구와 Java HTTP 오류 문구에는 차이가 있다. 비정상 응답이 같은 시간 범위를 반복시키지 않도록 진행 위치 증가 검사를 추가했다.
+
+## 거래 이벤트 저장
+- 원본 TransactionService는 거래 구분 없이 모든 trade.executed를 현물·선물 테이블에 순서대로 저장한다. 이 동작과 실패가 주문 결과를 바꾸지 않고 실패 이벤트로 남는 계약을 유지했다.
+- 원본 bigint 주문 ID를 유지하며 decimal은 JDBC BigDecimal로 저장한다. 선물 종료 시 손익·청산 여부·보유 초를 갱신한다. 실제 PostgreSQL 테스트로 확인했다.
+- 원본 Bitcoin 파서는 노드 조회가 아닌 무작위 더미 생성이다. 이를 BitcoinFixtureRepository로 명시해 보존했다. txid·주소는 유효한 온체인 데이터가 아니고 parsedBy=dummy-parser-v1이다. 실제 Bitcoin 파싱 구현으로 주장하지 않는다.
