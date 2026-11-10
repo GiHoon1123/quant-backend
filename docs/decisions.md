@@ -96,3 +96,9 @@ pgJDBC 42.7.7을 사용하고 원본 initial migration의 SQL을 원문 그대�
 ## 통합 테스트용 API
 - 원본의 7개 손절/익절 계산·기본값·동적 모니터링 이벤트·health 경로를 같은 계산기로 연결했다. Nest 기본 HTTP 201을 보존한다.
 - 모니터링 테스트는 실제 주문을 만들지 않고 포지션 이벤트를 발행한다. 외부 WS 연결은 MARKET_STREAM_ENABLED로 제어한다.
+
+## 알림 경계
+- Telegram 전송은 NOTIFICATIONS_ENABLED로 외부 발송을 명시적으로 켜야 한다. fixture 서버에는 가짜 토큰/채팅 ID만 사용했으며 실제 메시지는 보내지 않았다. 원본처럼 HTTP 발송 실패가 호출자에게 전파되지 않는다.
+- 객관적 분석 리포트의 BUY/SELL/STRONG_BUY 3종은 원본 TelegramClient를 실행해 문자열 전체를 비교했다. 원본의 이중 달러 표시 등 기존 표현도 유지했다.
+- 기술 도메인 analysis.completed만 알림을 소비하고 HOLD를 제외한다. 심볼·신호·타입·시간봉·분 단위 중복 방지와 완료 이벤트를 검증했다.
+- 통계 recentMessages.message는 현재 실제 Telegram 리포트를 담으며, 원본 NotificationService의 별도 내부 Markdown 메시지와 차이가 있다. 개별/고급 전략 알림 템플릿 전체는 아직 대조 대상이다.
